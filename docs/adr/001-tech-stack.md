@@ -53,19 +53,20 @@ Setting up the technical foundation for dj.ivanpashkulev.com - a DJ booking and 
 - SQLite: Too limited for production, no concurrent writes
 - MongoDB: Overkill for structured booking data, costs more to host reliably
 
-### Hosting: **Self-hosted VPS (Docker)**
+### Hosting: **Self-hosted Mac M2 Max (dev-vm) with Cloudflare Tunnel**
 
 **Why:**
-- Minimal cost: ~$5-10/month for small VPS (Hetzner, DigitalOcean, or Linode)
-- Full control over infrastructure
+- Zero hosting cost: using already-owned Mac M2 Max
+- Cloudflare Tunnel: no open inbound ports, secure by default
 - Docker containers: easy deployment, rollback, and scaling
-- Can host database, app, and nginx on same instance for MVP
-- Easy to migrate or scale later
+- Full control over infrastructure
+- SSL/TLS handled by Cloudflare at edge (zero config)
+- Can host multiple verticals on same machine
 
 **Alternatives considered:**
+- VPS (Hetzner, DigitalOcean): $5-10/month ongoing cost
 - Vercel/Netlify: Free tier exists but has limitations, costs scale quickly
 - AWS/GCP: Excellent but overkill for MVP, more expensive
-- Shared hosting: Limited control, harder to configure
 
 ### Payment Provider: **Stripe**
 
@@ -93,16 +94,17 @@ Setting up the technical foundation for dj.ivanpashkulev.com - a DJ booking and 
 - Self-hosted SMTP: Deliverability issues, maintenance overhead
 - AWS SES: Requires AWS account, more setup
 
-### CI/CD: **GitHub Actions**
+### CI/CD: **GitHub Actions → GHCR → Automated Deployment PR**
 
 **Why:**
-- Free for public repos
-- Free tier for private repos (2000 minutes/month)
+- Free for public repos, free tier for private repos (2000 minutes/month)
 - Native GitHub integration
-- Easy to configure
-- Can deploy to any VPS via SSH
+- Build Docker image, push to GHCR automatically
+- Open automated PR to devops repo for GitOps deployment
+- Board approval before deployment (via PR merge)
 
 **Alternatives considered:**
+- Direct SSH deployment: Less secure, no approval gate
 - GitLab CI: Similar but team already uses GitHub
 - CircleCI/Travis: Additional service to manage, costs money
 
@@ -111,45 +113,49 @@ Setting up the technical foundation for dj.ivanpashkulev.com - a DJ booking and 
 1. **Development**: `npm run dev` locally on port 3000
 2. **Build**: `npm run build` creates production Next.js standalone output
 3. **Docker**: Multi-stage build creates minimal production image
-4. **CI/CD**: GitHub Actions runs tests + lint, builds Docker image, pushes to VPS
-5. **Production**: Docker Compose on VPS (app + PostgreSQL + nginx reverse proxy)
-6. **Health checks**: Built into Docker, monitors app availability
-7. **Rollback**: Keep last 3 Docker images, quick rollback via Docker tag
+4. **CI/CD on merge to main**:
+   - GitHub Actions runs lint + type-check + build
+   - Builds Docker image, pushes to GHCR tagged with commit SHA
+   - Checks out devops repo, updates docker-compose.yml with new image tag
+   - Opens automated PR to devops repo
+5. **Board review**: Reviews deployment PR, merges when ready
+6. **Production**: Pull and restart Docker Compose service on dev-vm
+7. **Traffic flow**: Cloudflare Edge → Cloudflare Tunnel → nginx → dj container
 
 ## Cost Estimate
 
 | Service | Monthly Cost |
 |---------|-------------|
-| VPS (2GB RAM, 1 vCPU) | $5-10 |
+| Hosting (Mac M2 Max dev-vm) | $0 (already owned) |
 | Domain (already owned) | $0 |
-| SSL (Let's Encrypt) | $0 |
+| SSL (Cloudflare) | $0 |
 | Email (Resend free tier) | $0 |
 | Payment (Stripe) | Pay-per-transaction (2.9% + $0.30) |
 | GitHub Actions | $0 (within free tier) |
-| **Total** | **$5-10/month** |
+| **Total** | **$0/month** |
 
 **Scaling costs:**
-- More traffic: Upgrade VPS to 4GB RAM (~$20/month)
 - More emails: Resend paid tier starts at $20/month for 50k emails
-- Database needs: Separate DB instance (~$10/month)
+- Dedicated hosting: Move to VPS (~$10-20/month if dev-vm becomes insufficient)
 
 ## Rollback/Migration Strategy
 
 ### Rollback
 - Docker images tagged with git commit SHA
-- Keep last 3 production images on VPS
-- Rollback via `docker-compose up -d app:v1.2.3`
+- devops repo tracks deployment history via git
+- Rollback via opening PR with previous image tag
 - Database migrations use Prisma with `down` scripts
 
-### Migration to managed services (if needed)
-- Next.js: Deploy to Vercel (lift-and-shift, change env vars)
+### Migration to dedicated hosting (if needed)
+- Next.js: Lift-and-shift to VPS or Vercel
 - Database: Export PostgreSQL to managed Postgres (AWS RDS, DigitalOcean Managed DB)
 - Email: Already using external service (Resend)
 - Payment: Already using external service (Stripe)
 
 ## Security Considerations
 
-- HTTPS everywhere: Let's Encrypt certificates via certbot
+- HTTPS everywhere: Cloudflare terminates TLS at edge
+- No open inbound ports: Cloudflare Tunnel handles all traffic
 - Environment variables: Never commit secrets, use `.env.local` in development
 - Input validation: Zod schemas on all API routes
 - Payment security: PCI compliance handled by Stripe (never store card data)
@@ -161,14 +167,10 @@ Setting up the technical foundation for dj.ivanpashkulev.com - a DJ booking and 
 
 1. Set up local development environment
 2. Create CI/CD pipeline with GitHub Actions
-3. Provision VPS and configure Docker deployment
-4. Implement basic landing page and booking form
-5. Integrate Stripe for payments
-6. Set up admin dashboard
+3. Implement basic landing page and booking form
+4. Integrate Stripe for payments
+5. Set up admin dashboard
 
 ## Approval
 
-This ADR represents the engineering decision for the DJ vertical tech stack. No budget approval needed for development setup. CEO approval required before:
-- Purchasing VPS hosting ($5-10/month)
-- Registering Stripe account (no cost until transactions)
-- Purchasing SSL certificates (using free Let's Encrypt, so no approval needed)
+This ADR represents the engineering decision for the DJ vertical tech stack. Infrastructure is self-hosted (zero ongoing cost), so no budget approval needed.

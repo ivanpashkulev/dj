@@ -2,9 +2,13 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'DJ Ivan Pashkulev - Bansko',
-  description: 'Professional DJ services in Bansko, Bulgaria. Book now for your event.',
-  keywords: ['DJ', 'Bansko', 'Bulgaria', 'music', 'events', 'weddings', 'parties'],
+  title: 'DJ Ivan Pashkulev',
+  description: 'DJ services in Bansko, Bulgaria',
+  openGraph: {
+    title: 'DJ Ivan Pashkulev',
+    description: 'DJ services in Bansko, Bulgaria',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({

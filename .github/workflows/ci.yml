@@ -91,3 +91,45 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Extract short SHA
+        id: sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Checkout devops repo
+        uses: actions/checkout@v4
+        with:
+          repository: ivanpashkulev/devops
+          token: ${{ secrets.DEVOPS_DEPLOY_TOKEN }}
+          path: devops
+
+      - name: Update docker-compose.yml
+        working-directory: devops
+        run: |
+          sed -i "s|image: ghcr.io/ivanpashkulev/dj:.*|image: ghcr.io/ivanpashkulev/dj:${{ steps.sha.outputs.short_sha }}|" docker-compose.yml
+          git config user.name "DJ Tech Lead"
+          git config user.email "noreply@paperclip.ing"
+          git checkout -b deploy-dj-${{ steps.sha.outputs.short_sha }}
+          git add docker-compose.yml
+          git commit -m "Deploy dj:${{ steps.sha.outputs.short_sha }}
+
+Automated deployment from dj repo commit ${{ github.sha }}
+
+Co-Authored-By: Paperclip <noreply@paperclip.ing>"
+          git push origin deploy-dj-${{ steps.sha.outputs.short_sha }}
+
+      - name: Create deployment PR
+        working-directory: devops
+        env:
+          GH_TOKEN: ${{ secrets.DEVOPS_DEPLOY_TOKEN }}
+        run: |
+          gh pr create \
+            --title "Deploy dj:${{ steps.sha.outputs.short_sha }}" \
+            --body "Automated deployment of DJ service
+
+**Image:** \`ghcr.io/ivanpashkulev/dj:${{ steps.sha.outputs.short_sha }}\`
+**Source commit:** ${{ github.sha }}
+**Source PR:** ${{ github.event.pull_request.html_url || 'Direct push to main' }}
+
+Merge to deploy." \
+            --base main
