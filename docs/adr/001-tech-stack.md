@@ -23,7 +23,7 @@ Setting up the technical foundation for dj.ivanpashkulev.com - a DJ booking and 
 
 ## Decision
 
-### Frontend & Backend Framework: **Next.js 14 (TypeScript)**
+### Frontend & Backend Framework: **Next.js 15 (TypeScript)**
 
 **Why:**
 - Full-stack framework: handles both frontend and API routes in one codebase
