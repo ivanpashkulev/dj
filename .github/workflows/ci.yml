@@ -48,7 +48,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: build
           path: .next/
@@ -98,7 +98,7 @@ jobs:
         run: echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
       - name: Checkout devops repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ivanpashkulev/devops
           token: ${{ secrets.DEVOPS_DEPLOY_TOKEN }}
