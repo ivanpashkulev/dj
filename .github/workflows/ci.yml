@@ -102,11 +102,9 @@ jobs:
           git config user.email "noreply@paperclip.ing"
           git checkout -b deploy-dj-${{ steps.sha.outputs.short_sha }}
           git add docker-compose.yml
-          git commit -m "Deploy dj:${{ steps.sha.outputs.short_sha }}
-
-Automated deployment from dj repo commit ${{ github.sha }}
-
-Co-Authored-By: Paperclip <noreply@paperclip.ing>"
+          git commit -m "Deploy dj:${{ steps.sha.outputs.short_sha }}" \
+                     -m "Automated deployment from dj repo commit ${{ github.sha }}" \
+                     -m "Co-Authored-By: Paperclip <noreply@paperclip.ing>"
           git push origin deploy-dj-${{ steps.sha.outputs.short_sha }}
 
       - name: Create deployment PR
@@ -118,9 +116,9 @@ Co-Authored-By: Paperclip <noreply@paperclip.ing>"
             --title "Deploy dj:${{ steps.sha.outputs.short_sha }}" \
             --body "Automated deployment of DJ service
 
-**Image:** \`ghcr.io/ivanpashkulev/dj:${{ steps.sha.outputs.short_sha }}\`
-**Source commit:** ${{ github.sha }}
-**Source PR:** ${{ github.event.pull_request.html_url || 'Direct push to main' }}
+          **Image:** \`ghcr.io/ivanpashkulev/dj:${{ steps.sha.outputs.short_sha }}\`
+          **Source commit:** ${{ github.sha }}
+          **Source PR:** ${{ github.event.pull_request.html_url || 'Direct push to main' }}
 
-Merge to deploy." \
+          Merge to deploy." \
             --base main
