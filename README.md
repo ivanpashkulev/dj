@@ -8,8 +8,8 @@ Professional DJ booking and promotion platform for Bansko, Bulgaria.
 - **Database**: PostgreSQL
 - **Payments**: Stripe
 - **Email**: Resend
-- **Hosting**: Self-hosted VPS (Docker)
-- **CI/CD**: GitHub Actions
+- **Hosting**: Self-hosted (Mac M2 Max dev-vm, Docker, Cloudflare Tunnel)
+- **CI/CD**: GitHub Actions → GHCR → automated deployment PR
 
 See [docs/adr/001-tech-stack.md](docs/adr/001-tech-stack.md) for full architecture decisions and rationale.
 
@@ -89,7 +89,15 @@ See [docs/adr/001-tech-stack.md](docs/adr/001-tech-stack.md) for full architectu
 
 ## Deployment
 
-The application is containerized with Docker and deployed to a self-hosted VPS.
+The application is containerized with Docker and deployed to a self-hosted Mac M2 Max dev-vm.
+
+### Deployment Flow
+
+1. Push to `main` branch
+2. GitHub Actions builds and pushes Docker image to GHCR (`ghcr.io/ivanpashkulev/dj:<sha>`)
+3. Automated PR is opened in the devops repo updating `docker-compose.yml`
+4. Board reviews and merges deployment PR
+5. Update is pulled and restarted on dev-vm
 
 ### Docker Build
 
@@ -103,7 +111,18 @@ docker run -p 3000:3000 dj-ivanpashkulev
 GitHub Actions automatically:
 - Runs tests and linting on every PR
 - Builds Docker image on merge to `main`
-- Deploys to production VPS (when configured)
+- Pushes image to GHCR tagged with commit SHA
+- Opens deployment PR to devops repo
+
+## Infrastructure
+
+- **Host**: Mac M2 Max (dev-vm)
+- **Traffic**: Cloudflare Tunnel (HTTPS termination at edge)
+- **Reverse proxy**: nginx (routes dj.ivanpashkulev.com to container)
+- **Container**: Docker Compose service
+- **No open ports**: Cloudflare Tunnel handles inbound traffic
+
+See [ivanpashkulev/devops](https://github.com/ivanpashkulev/devops) for full infrastructure setup.
 
 ## Contributing
 
@@ -130,11 +149,11 @@ See `.env.example` for required environment variables.
 
 ## Costs
 
-Estimated monthly operating cost: **$5-10**
+Estimated monthly operating cost: **~$0** (self-hosted infrastructure)
 
-- VPS: $5-10/month
+- Hosting: Self-hosted Mac M2 Max (already owned)
 - Domain: Already owned
-- SSL: Free (Let's Encrypt)
+- SSL: Free (Cloudflare)
 - Email: Free tier (Resend)
 - Payment processing: Pay-per-transaction (Stripe 2.9% + $0.30)
 
@@ -142,7 +161,7 @@ See ADR for detailed cost breakdown and scaling estimates.
 
 ## Support
 
-For questions or issues, contact: ivan.pashkulev@gmail.com
+For questions or issues, contact the board.
 
 ## License
 
