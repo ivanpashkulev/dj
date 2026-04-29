@@ -3,10 +3,10 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'DJ Ivan Pashkulev',
-  description: 'DJ services in Bansko, Bulgaria',
+  description: 'TODO: pending Creative Director brief',
   openGraph: {
     title: 'DJ Ivan Pashkulev',
-    description: 'DJ services in Bansko, Bulgaria',
+    description: 'TODO: pending Creative Director brief',
     type: 'website',
   },
 }
