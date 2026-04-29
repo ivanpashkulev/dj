@@ -97,7 +97,7 @@ jobs:
     steps:
       - name: Extract short SHA
         id: sha
-        run: echo "short_sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+        run: echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
       - name: Checkout devops repo
         uses: actions/checkout@v4
