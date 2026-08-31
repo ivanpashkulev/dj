@@ -2,9 +2,9 @@ name: DJ app CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, dev]
   pull_request:
-    branches: [main, develop]
+    branches: [main, dev]
 
 jobs:
   lint-and-type-check:
@@ -48,16 +48,14 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
 
   docker:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    env:
-      DOCKER_HOST: unix:///Users/vankata/.docker/run/docker.sock
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Extract short SHA
         id: sha
@@ -78,7 +76,7 @@ jobs:
         with:
           context: .
           push: true
-          platforms: linux/arm64
+          platforms: linux/amd64
           tags: ghcr.io/${{ github.repository }}:${{ steps.sha.outputs.short_sha }}
 
   update-devops:
@@ -91,7 +89,7 @@ jobs:
         run: echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
       - name: Checkout devops repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: ivanpashkulev/devops
           token: ${{ secrets.DEVOPS_DEPLOY_TOKEN }}
@@ -106,12 +104,7 @@ jobs:
           token: ${{ secrets.DEVOPS_DEPLOY_TOKEN }}
           commit-message: |
             Deploy dj:${{ steps.sha.outputs.short_sha }}
-
             Automated deployment from dj repo commit ${{ github.sha }}
-
-            Co-Authored-By: Paperclip <noreply@paperclip.ing>
-          committer: DJ Tech Lead <noreply@paperclip.ing>
-          author: DJ Tech Lead <noreply@paperclip.ing>
           branch: deploy-dj-${{ steps.sha.outputs.short_sha }}
           title: Deploy dj:${{ steps.sha.outputs.short_sha }}
           body: |
