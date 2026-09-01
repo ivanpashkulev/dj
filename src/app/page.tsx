@@ -3,7 +3,7 @@ export default function Home() {
     <main className="container">
       <div className="hero">
         <h1>🎧 DJ Ivan Pashkulev</h1>
-        <p className="tagline">Welcome to the DJ vertical</p>
+        <p className="tagline">New mixes and live sets are coming soon.</p>
         <div className="status">Coming Soon</div>
       </div>
     </main>
