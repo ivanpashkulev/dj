@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-  workflow_dispatch:
-
 jobs:
   validate:
     name: Validate Application
@@ -37,6 +35,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
 
   build-and-publish:
+    name: Build and publish dokcer image of DJ app
     needs: validate
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
