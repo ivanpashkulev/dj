@@ -4,12 +4,12 @@ on:
   push:
     branches: [main, dev]
   pull_request:
-    branches: [main, dev]
+    branches: [main]
 
   workflow_dispatch:
 
 jobs:
-  lint-and-type-check:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -29,8 +29,14 @@ jobs:
       - name: Run TypeScript type check
         run: npm run type-check
 
+      - name: Build application
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
   build-and-publish:
-    needs: lint-and-type-check
+    needs: validate
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: read
